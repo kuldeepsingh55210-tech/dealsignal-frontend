@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-[#0a0f0a] text-slate-100 antialiased transition-colors duration-300 overflow-x-hidden;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-[#060d06];
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-[#25D366]/30 hover:bg-[#25D366]/60 transition-colors rounded-full;
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply backdrop-blur-md bg-[#0f1a0f]/60 border border-slate-700/30;
+  }
+  .glass-card {
+    @apply backdrop-blur-xl bg-[#0f1a0f]/80 border border-[#25D366]/20 shadow-[0_8px_30px_rgb(0,0,0,0.3)];
+  }
+  .text-glow {
+    text-shadow: 0 0 10px rgba(37, 211, 102, 0.5);
+  }
+  .box-glow {
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.15);
+  }
+}
+
+@keyframes fade-in-up {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes message-pop {
+  0% { opacity: 0; transform: scale(0.95) translateY(10px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+.animate-message {
+  animation: message-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.btn-shimmer {
+  background: linear-gradient(90deg, #25D366 0%, #5dffd3 50%, #25D366 100%);
+  background-size: 200% auto;
+  transition: all 0.3s ease;
+  color: #060d06;
+}
+.btn-shimmer:hover {
+  animation: shimmer 1.5s linear infinite;
+  box-shadow: 0 0 20px rgba(37, 211, 102, 0.4);
+  transform: translateY(-2px);
+}
+.btn-shimmer:disabled {
+  background: #2a3a2a;
+  color: #666;
+  box-shadow: none;
+  transform: none;
+  animation: none;
+}

@@ -1,0 +1,68 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './hooks';
+
+// Components
+import Layout from './components/Layout';
+import Login from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Leads from './pages/Leads';
+import Chat from './pages/Chat';
+import Settings from './pages/Settings';
+import Profile from './pages/Profile';
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-primary">Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+
+  return children;
+};
+
+const PublicRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-primary">Loading...</div>;
+  if (user) return <Navigate to="/dashboard" />;
+
+  return children;
+};
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
+
+        {/* Protected Dashboard Routes wrapped in Layout */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="leads" element={<Leads />} />
+          <Route path="chat" element={<Chat />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/dashboard" />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
