@@ -1,39 +1,69 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { format } from 'date-fns';
-import { Search, MapPin, IndianRupee, Clock, Briefcase, Star, X, Home, Building2, Flame, Snowflake, ThermometerSun } from 'lucide-react';
+import { Search, MapPin, IndianRupee, Clock, Briefcase, Star, X, Home, Building2, Flame, Snowflake, ThermometerSun, Save, FileText } from 'lucide-react';
 
 const Leads = () => {
     const [leads, setLeads] = useState([]);
     const [loading, setLoading] = useState(true);
-    
-    // Filters
-    const [mainFilter, setMainFilter] = useState('all'); // all, buy, rent
-    const [subFilter, setSubFilter] = useState('all'); // all, plot, flat, ghar, room
-    
-    // Modal
+    const [mainFilter, setMainFilter] = useState('all');
+    const [subFilter, setSubFilter] = useState('all');
     const [selectedLead, setSelectedLead] = useState(null);
 
+    // ✅ Notes + Status state
+    const [notes, setNotes] = useState('');
+    const [status, setStatus] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState('');
+
     useEffect(() => {
-        const fetchLeads = async () => {
-            try {
-                const res = await api.get('/leads');
-                if (res.data.success) {
-                    setLeads(res.data.data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch leads", error);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchLeads();
     }, []);
 
-    // Handle sub filters changing when main filter changes
+    const fetchLeads = async () => {
+        try {
+            const res = await api.get('/leads');
+            if (res.data.success) {
+                setLeads(res.data.data);
+            }
+        } catch (error) {
+            console.error("Failed to fetch leads", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
         setSubFilter('all');
     }, [mainFilter]);
+
+    // ✅ Jab modal open ho toh notes + status set karo
+    const openModal = (lead) => {
+        setSelectedLead(lead);
+        setNotes(lead.notes || '');
+        setStatus(lead.status || 'new');
+        setSaveMsg('');
+    };
+
+    // ✅ Save notes + status
+    const handleSave = async () => {
+        setSaving(true);
+        setSaveMsg('');
+        try {
+            const res = await api.patch(`/leads/${selectedLead._id}`, { notes, status });
+            if (res.data.success) {
+                // Update local leads list
+                setLeads(prev => prev.map(l => l._id === selectedLead._id ? res.data.data : l));
+                setSelectedLead(res.data.data);
+                setSaveMsg('✅ Saved!');
+                setTimeout(() => setSaveMsg(''), 2000);
+            }
+        } catch (error) {
+            setSaveMsg('❌ Save failed');
+        } finally {
+            setSaving(false);
+        }
+    };
 
     const filteredLeads = leads.filter(l => {
         let match = true;
@@ -41,7 +71,7 @@ const Leads = () => {
         const propType = (l.qualification?.propertyType || '').toLowerCase();
 
         if (mainFilter !== 'all' && cat !== mainFilter) match = false;
-        
+
         if (match && subFilter !== 'all') {
             if (subFilter === 'plot' && !propType.includes('plot')) match = false;
             if (subFilter === 'flat' && !propType.includes('flat')) match = false;
@@ -70,6 +100,16 @@ const Leads = () => {
         }
     };
 
+    const statusOptions = [
+        { value: 'new', label: '🆕 New' },
+        { value: 'contacted', label: '📞 Contacted' },
+        { value: 'qualified', label: '✅ Qualified' },
+        { value: 'HOT', label: '🔥 HOT' },
+        { value: 'WARM', label: '🌡️ WARM' },
+        { value: 'COLD', label: '❄️ COLD' },
+        { value: 'lost', label: '❌ Lost' },
+    ];
+
     if (loading) return <div className="text-slate-400 flex justify-center p-12">Loading leads pipeline...</div>;
 
     return (
@@ -79,8 +119,6 @@ const Leads = () => {
                     <h1 className="text-3xl font-bold text-slate-100">Leads Pipeline</h1>
                     <p className="text-slate-400 mt-2">Manage and qualify your property inquiries.</p>
                 </div>
-                
-                {/* Main Filter Tabs */}
                 <div className="flex bg-slate-900 border border-slate-800 p-1 rounded-xl">
                     <button onClick={() => setMainFilter('all')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${mainFilter === 'all' ? 'bg-slate-700 text-white' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>All</button>
                     <button onClick={() => setMainFilter('buy')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${mainFilter === 'buy' ? 'bg-primary text-[#0a0f0a]' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}>
@@ -92,11 +130,9 @@ const Leads = () => {
                 </div>
             </header>
 
-            {/* Sub Filters */}
             {mainFilter !== 'all' && (
                 <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
                     <button onClick={() => setSubFilter('all')} className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-colors ${subFilter === 'all' ? 'border-primary text-primary bg-primary/10' : 'border-slate-700 text-slate-400 hover:bg-slate-800'}`}>All {mainFilter}</button>
-                    
                     {mainFilter === 'buy' && (
                         <>
                             <button onClick={() => setSubFilter('plot')} className={`px-4 py-1.5 rounded-full text-xs font-medium border transition-colors ${subFilter === 'plot' ? 'border-primary text-primary bg-primary/10' : 'border-slate-700 text-slate-400 hover:bg-slate-800'}`}>🌳 Plot</button>
@@ -114,24 +150,20 @@ const Leads = () => {
                 </div>
             )}
 
-            {/* Leads Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {filteredLeads.map(lead => (
-                    <div 
-                        key={lead._id} 
-                        onClick={() => setSelectedLead(lead)}
+                    <div
+                        key={lead._id}
+                        onClick={() => openModal(lead)}
                         className={`border rounded-2xl p-5 cursor-pointer hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group ${getScoreStyles(lead.qualification?.leadScore)}`}
                     >
-                        {/* Status Ribbon */}
                         <div className="absolute top-0 right-0 p-3">
-                           {getScoreBadge(lead.qualification?.leadScore)}
+                            {getScoreBadge(lead.qualification?.leadScore)}
                         </div>
-
                         <div className="mb-4 pr-16">
                             <h3 className="text-lg font-bold text-slate-100 group-hover:text-primary transition-colors">{lead.name}</h3>
                             <p className="text-slate-400 font-mono text-sm">{lead.phone}</p>
                         </div>
-
                         <div className="space-y-3">
                             <div className="flex items-center gap-3">
                                 <span className={`px-2 py-1 rounded text-xs font-bold uppercase tracking-wide ${lead.qualification?.category === 'buy' ? 'bg-primary/20 text-primary' : lead.qualification?.category === 'rent' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-slate-800 text-slate-400'}`}>
@@ -141,22 +173,21 @@ const Leads = () => {
                                     {lead.qualification?.propertyType || 'Type unknown'}
                                 </span>
                             </div>
-
                             <div className="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-slate-800/50">
                                 <div className="flex items-start gap-2 text-sm text-slate-400">
                                     <MapPin className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
-                                    <span className="truncate" title={lead.qualification?.location}>{lead.qualification?.location || '-'}</span>
+                                    <span className="truncate">{lead.qualification?.location || '-'}</span>
                                 </div>
                                 <div className="flex items-start gap-2 text-sm text-slate-400">
                                     <IndianRupee className="w-4 h-4 text-slate-500 mt-0.5 flex-shrink-0" />
-                                    <span className="font-mono truncate" title={lead.qualification?.budget}>{lead.qualification?.budget || '-'}</span>
+                                    <span className="font-mono truncate">{lead.qualification?.budget || '-'}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
-            
+
             {filteredLeads.length === 0 && (
                 <div className="bg-slate-900 border border-slate-800 rounded-2xl p-12 flex flex-col items-center justify-center text-center">
                     <Search className="w-12 h-12 text-slate-600 mb-4" />
@@ -188,7 +219,7 @@ const Leads = () => {
                             {/* Requirement Summary */}
                             <div className={`p-5 rounded-xl border ${selectedLead.qualification?.category === 'buy' ? 'bg-primary/5 border-primary/20' : 'bg-indigo-500/5 border-indigo-500/20'}`}>
                                 <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                                    {selectedLead.qualification?.category === 'buy' ? <Home className="w-4 h-4"/> : <Building2 className="w-4 h-4"/>} 
+                                    {selectedLead.qualification?.category === 'buy' ? <Home className="w-4 h-4"/> : <Building2 className="w-4 h-4"/>}
                                     Core Requirement
                                 </h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -197,7 +228,7 @@ const Leads = () => {
                                         <p className="font-bold text-slate-200 capitalize">{selectedLead.qualification?.category || '-'}</p>
                                     </div>
                                     <div>
-                                        <p className="text-xs text-slate-500 mb-1">Property Info</p>
+                                        <p className="text-xs text-slate-500 mb-1">Property</p>
                                         <p className="font-semibold text-slate-200 capitalize">{selectedLead.qualification?.propertyType || '-'}</p>
                                     </div>
                                     <div>
@@ -211,7 +242,7 @@ const Leads = () => {
                                 </div>
                             </div>
 
-                            {/* Detailed Answers */}
+                            {/* Full Details */}
                             <div>
                                 <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">Full Details</h3>
                                 <div className="space-y-4">
@@ -250,6 +281,55 @@ const Leads = () => {
                                             <p className="text-slate-200 font-medium">{selectedLead.qualification?.occupation || 'Not specified'}</p>
                                         </div>
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* ✅ Status + Notes Update Section */}
+                            <div className="border border-slate-800 rounded-xl p-5 space-y-4">
+                                <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                                    <FileText className="w-4 h-4" /> Update Lead
+                                </h3>
+
+                                {/* Status Dropdown */}
+                                <div>
+                                    <label className="block text-xs text-slate-500 mb-2">Status</label>
+                                    <select
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                    >
+                                        {statusOptions.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Notes Textarea */}
+                                <div>
+                                    <label className="block text-xs text-slate-500 mb-2">Notes</label>
+                                    <textarea
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        rows={3}
+                                        placeholder="Is lead ke baare mein kuch notes likhو..."
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none"
+                                    />
+                                </div>
+
+                                {/* Save Button */}
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                        className="flex items-center gap-2 px-6 py-2.5 bg-primary text-slate-900 rounded-xl font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                    >
+                                        {saving
+                                            ? <div className="w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                                            : <Save className="w-4 h-4" />
+                                        }
+                                        Save
+                                    </button>
+                                    {saveMsg && <span className="text-sm font-medium text-primary">{saveMsg}</span>}
                                 </div>
                             </div>
 
