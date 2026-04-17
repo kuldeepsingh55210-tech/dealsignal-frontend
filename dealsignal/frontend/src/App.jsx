@@ -11,11 +11,14 @@ import Profile from './pages/Profile';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import Onboarding from './pages/Onboarding';
+import SubscriptionExpired from './pages/SubscriptionExpired';
 
 const ProtectedRoute = ({ children }) => {
-    const { user, loading } = useAuth();
+    const { user, loading, subscriptionExpired } = useAuth();
     if (loading) return <div className="min-h-screen bg-background flex items-center justify-center text-primary">Loading...</div>;
     if (!user) return <Navigate to="/login" />;
+    // ✅ Subscription expired check
+    if (subscriptionExpired) return <Navigate to="/subscription-expired" />;
     // ✅ Onboarding check
     if (!user.onboarding?.completed) return <Navigate to="/onboarding" />;
     return children;
@@ -44,6 +47,8 @@ function App() {
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/onboarding" element={<OnboardingRoute><Onboarding /></OnboardingRoute>} />
+                {/* ✅ Subscription Expired Route */}
+                <Route path="/subscription-expired" element={<SubscriptionExpired />} />
                 <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<Dashboard />} />

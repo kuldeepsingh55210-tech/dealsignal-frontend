@@ -6,6 +6,7 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [subscriptionExpired, setSubscriptionExpired] = useState(false);
 
     useEffect(() => {
         const checkUser = async () => {
@@ -23,27 +24,43 @@ export const AuthProvider = ({ children }) => {
         };
         checkUser();
 
-        // Listen for unauthorized events from api interceptor
-        const handleUnauthorized = () => setUser(null);
+        // 401 - Logout
+        const handleUnauthorized = () => {
+            setUser(null);
+            setSubscriptionExpired(false);
+        };
+
+        // ✅ 403 - Subscription expired
+        const handleSubscriptionExpired = () => {
+            setSubscriptionExpired(true);
+        };
+
         window.addEventListener('unauthorized', handleUnauthorized);
-        return () => window.removeEventListener('unauthorized', handleUnauthorized);
+        window.addEventListener('subscription_expired', handleSubscriptionExpired);
+
+        return () => {
+            window.removeEventListener('unauthorized', handleUnauthorized);
+            window.removeEventListener('subscription_expired', handleSubscriptionExpired);
+        };
     }, []);
 
     const login = (userData) => {
         setUser(userData);
+        setSubscriptionExpired(false);
     };
 
     const logout = async () => {
         try {
             await api.get('/auth/logout');
             setUser(null);
+            setSubscriptionExpired(false);
         } catch (error) {
             console.error('Logout failed', error);
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, loading, login, logout, subscriptionExpired }}>
             {children}
         </AuthContext.Provider>
     );
