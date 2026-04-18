@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, MessageSquare, Settings as SettingsIcon, LogOut, User, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Settings as SettingsIcon, LogOut, User, BarChart2, Bell } from 'lucide-react';
 import { useAuth } from '../hooks';
 
 const Layout = () => {
@@ -10,6 +10,7 @@ const Layout = () => {
         { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
         { path: '/leads', label: 'Leads', icon: Users },
         { path: '/analytics', label: 'Analytics', icon: BarChart2 },
+        { path: '/reminders', label: 'Reminders', icon: Bell },
         { path: '/chat', label: 'WhatsApp Chat', icon: MessageSquare },
         { path: '/profile', label: 'Profile', icon: User },
         { path: '/settings', label: 'Settings', icon: SettingsIcon },
