@@ -26,7 +26,6 @@ const Settings = () => {
         setTimeout(() => setSaving(false), 1500);
     };
 
-    // ✅ Embedded Signup Launch
     const launchWhatsAppSignup = () => {
         setConnecting(true);
         setConnectMsg('');
@@ -37,22 +36,26 @@ const Settings = () => {
             return;
         }
 
-        window.FB.login(async (response) => {
+        window.FB.login((response) => {
             if (response.authResponse) {
                 const code = response.authResponse.code;
-                try {
-                    const res = await api.post('/auth/whatsapp/connect', { code });
-                    if (res.data.success) {
-                        login(res.data.data);
-                        setConnectMsg('✅ WhatsApp Connected!');
-                    }
-                } catch (err) {
-                    setConnectMsg('❌ Connection failed. Try again.');
-                }
+                api.post('/auth/whatsapp/connect', { code })
+                    .then((res) => {
+                        if (res.data.success) {
+                            login(res.data.data);
+                            setConnectMsg('✅ WhatsApp Connected!');
+                        }
+                    })
+                    .catch(() => {
+                        setConnectMsg('❌ Connection failed. Try again.');
+                    })
+                    .finally(() => {
+                        setConnecting(false);
+                    });
             } else {
                 setConnectMsg('❌ Login cancelled.');
+                setConnecting(false);
             }
-            setConnecting(false);
         }, {
             config_id: '1438901538011808',
             response_type: 'code',
@@ -79,7 +82,6 @@ const Settings = () => {
                 </div>
             </header>
 
-            {/* Profile Section */}
             <section className="glass-card rounded-[2rem] overflow-hidden">
                 <div className="px-8 py-6 border-b border-primary/10 bg-[#152515]/30">
                     <h2 className="text-xl font-bold text-slate-100 flex items-center gap-3">
@@ -120,7 +122,6 @@ const Settings = () => {
                 </div>
             </section>
 
-            {/* ✅ WhatsApp Connect Section */}
             <section className="glass-card rounded-[2rem] overflow-hidden">
                 <div className="px-8 py-6 border-b border-primary/10 bg-[#152515]/30">
                     <h2 className="text-xl font-bold text-slate-100 flex items-center gap-3">
@@ -175,7 +176,6 @@ const Settings = () => {
                 </div>
             </section>
 
-            {/* Webhook Section */}
             <section className="glass-card rounded-[2rem] overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
                 <div className="px-8 py-6 border-b border-primary/10 bg-[#152515]/30 relative z-10">
