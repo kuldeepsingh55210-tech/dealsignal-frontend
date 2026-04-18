@@ -54,7 +54,7 @@ const Settings = () => {
             }
             setConnecting(false);
         }, {
-            config_id: 'YOUR_CONFIG_ID',
+            config_id: '1438901538011808',
             response_type: 'code',
             override_default_response_type: true,
             extras: {
@@ -133,7 +133,6 @@ const Settings = () => {
                 </div>
 
                 <div className="p-8 space-y-6">
-                    {/* Connection Status */}
                     <div className={`flex items-center justify-between p-5 rounded-2xl border ${user?.wa_connected ? 'bg-primary/10 border-primary/30' : 'bg-slate-800/50 border-slate-700'}`}>
                         <div className="flex items-center gap-4">
                             <div className={`p-3 rounded-full ${user?.wa_connected ? 'bg-primary/20 text-primary' : 'bg-slate-700 text-slate-400'}`}>
@@ -155,7 +154,6 @@ const Settings = () => {
                         )}
                     </div>
 
-                    {/* Connect Button */}
                     {!user?.wa_connected && (
                         <div>
                             <button
@@ -192,7 +190,6 @@ const Settings = () => {
 
                 <div className="p-8 space-y-8 relative z-10">
                     <div className="flex items-center justify-between bg-primary/10 border border-primary/20 p-5 rounded-2xl">
-                        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary"></div>
                         <div className="flex items-center gap-4">
                             <div className="bg-primary/20 p-3 rounded-full text-primary">
                                 <Activity className="w-6 h-6 animate-pulse" />
@@ -220,7 +217,7 @@ const Settings = () => {
                         </div>
 
                         <div className="group">
-                            <label className="flex items-center justify-between text-sm font-bold tracking-widests uppercase text-slate-500 mb-3">
+                            <label className="flex items-center justify-between text-sm font-bold tracking-widest uppercase text-slate-500 mb-3">
                                 <span>Verification Token</span>
                             </label>
                             <div className="flex shadow-inner rounded-xl overflow-hidden">
