@@ -13,6 +13,7 @@ import Terms from './pages/Terms';
 import Onboarding from './pages/Onboarding';
 import SubscriptionExpired from './pages/SubscriptionExpired';
 import Analytics from './pages/Analytics';
+import ResetPassword from './pages/ResetPassword';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading, subscriptionExpired } = useAuth();
@@ -47,6 +48,8 @@ function App() {
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/onboarding" element={<OnboardingRoute><Onboarding /></OnboardingRoute>} />
                 <Route path="/subscription-expired" element={<SubscriptionExpired />} />
+                {/* ✅ Reset Password Route */}
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
                     <Route index element={<Navigate to="/dashboard" replace />} />
                     <Route path="dashboard" element={<Dashboard />} />
