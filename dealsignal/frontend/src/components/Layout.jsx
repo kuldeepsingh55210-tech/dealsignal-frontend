@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Users, MessageSquare, Settings as SettingsIcon, LogOut, User, BarChart2, Bell } from 'lucide-react';
+import { LayoutDashboard, Users, MessageSquare, Settings as SettingsIcon, LogOut, User, BarChart2, Bell, CreditCard } from 'lucide-react';
 import { useAuth } from '../hooks';
 
 const Layout = () => {
@@ -12,6 +12,7 @@ const Layout = () => {
         { path: '/analytics', label: 'Analytics', icon: BarChart2 },
         { path: '/reminders', label: 'Reminders', icon: Bell },
         { path: '/chat', label: 'WhatsApp Chat', icon: MessageSquare },
+        { path: '/pricing', label: 'Pricing', icon: CreditCard },
         { path: '/profile', label: 'Profile', icon: User },
         { path: '/settings', label: 'Settings', icon: SettingsIcon },
     ];
@@ -63,7 +64,9 @@ const Layout = () => {
                         </div>
                         <div className="overflow-hidden">
                             <p className="text-sm font-bold text-slate-200 truncate">{user?.name || 'Broker'}</p>
-                            <p className="text-xs text-primary truncate font-medium uppercase">Pro Account</p>
+                            <p className="text-xs text-primary truncate font-medium uppercase">
+                                {user?.subscription?.plan || 'Trial'} Plan
+                            </p>
                         </div>
                     </div>
                     <button

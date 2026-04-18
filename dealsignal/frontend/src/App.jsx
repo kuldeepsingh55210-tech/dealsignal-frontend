@@ -15,6 +15,7 @@ import SubscriptionExpired from './pages/SubscriptionExpired';
 import Analytics from './pages/Analytics';
 import ResetPassword from './pages/ResetPassword';
 import Reminders from './pages/Reminders';
+import Pricing from './pages/Pricing';
 
 const ProtectedRoute = ({ children }) => {
     const { user, loading, subscriptionExpired } = useAuth();
@@ -57,8 +58,9 @@ function App() {
                     <Route path="analytics" element={<Analytics />} />
                     <Route path="reminders" element={<Reminders />} />
                     <Route path="chat" element={<Chat />} />
-                    <Route path="settings" element={<Settings />} />
+                    <Route path="pricing" element={<Pricing />} />
                     <Route path="profile" element={<Profile />} />
+                    <Route path="settings" element={<Settings />} />
                 </Route>
                 <Route path="*" element={<Navigate to="/dashboard" />} />
             </Routes>
