@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks';
 import api from '../services/api';
-import { Settings as SettingsIcon, Link2, ShieldCheck, Mail, Phone, Save, Activity, Wifi, WifiOff, CheckCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Link2, ShieldCheck, Mail, Phone, Save, Activity, Wifi, WifiOff, CheckCircle, Key } from 'lucide-react';
 
 function UserIcon(props) {
     return (
@@ -18,12 +18,41 @@ const Settings = () => {
     const [connecting, setConnecting] = useState(false);
     const [connectMsg, setConnectMsg] = useState('');
 
+    const [manualForm, setManualForm] = useState({
+        wa_phone_number_id: '',
+        wa_access_token: '',
+        wa_business_account_id: ''
+    });
+    const [manualConnecting, setManualConnecting] = useState(false);
+    const [manualMsg, setManualMsg] = useState('');
+
     const webhookUrl = 'https://web-production-c96b6.up.railway.app/api/whatsapp';
     const verifyToken = 'dealsignal_verify_2026';
 
     const handleSave = () => {
         setSaving(true);
         setTimeout(() => setSaving(false), 1500);
+    };
+
+    const handleManualConnect = async () => {
+        if (!manualForm.wa_phone_number_id || !manualForm.wa_access_token) {
+            setManualMsg('❌ Phone Number ID aur Access Token dono chahiye');
+            return;
+        }
+        setManualConnecting(true);
+        setManualMsg('');
+        try {
+            const res = await api.post('/auth/whatsapp/manual-connect', manualForm);
+            if (res.data.success) {
+                login({ ...user, ...res.data.data });
+                setManualMsg('✅ WhatsApp Successfully Connected!');
+                setManualForm({ wa_phone_number_id: '', wa_access_token: '', wa_business_account_id: '' });
+            }
+        } catch (err) {
+            setManualMsg('❌ ' + (err.response?.data?.message || 'Connection failed. Token check karo.'));
+        } finally {
+            setManualConnecting(false);
+        }
     };
 
     const launchWhatsAppSignup = () => {
@@ -156,7 +185,7 @@ const Settings = () => {
                     </div>
 
                     {!user?.wa_connected && (
-                        <div>
+                        <div className="space-y-4">
                             <button
                                 onClick={launchWhatsAppSignup}
                                 disabled={connecting}
@@ -165,7 +194,7 @@ const Settings = () => {
                                 {connecting ? (
                                     <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
                                 ) : (
-                                    <>💬 Connect WhatsApp Business</>
+                                    <>💬 Connect WhatsApp Business (Auto)</>
                                 )}
                             </button>
                             {connectMsg && (
@@ -175,6 +204,81 @@ const Settings = () => {
                     )}
                 </div>
             </section>
+
+            {!user?.wa_connected && (
+                <section className="glass-card rounded-[2rem] overflow-hidden">
+                    <div className="px-8 py-6 border-b border-primary/10 bg-[#152515]/30">
+                        <h2 className="text-xl font-bold text-slate-100 flex items-center gap-3">
+                            <span className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+                                <Key className="w-4 h-4 text-slate-300" />
+                            </span>
+                            Manual WhatsApp Connect
+                        </h2>
+                        <p className="text-slate-400 text-sm mt-2 ml-11">Apna Meta Phone Number ID aur Token manually enter karo.</p>
+                    </div>
+
+                    <div className="p-8 space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label className="block text-sm font-bold tracking-widest uppercase text-slate-500 mb-3">Phone Number ID *</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. 1001020353097193"
+                                    value={manualForm.wa_phone_number_id}
+                                    onChange={(e) => setManualForm({ ...manualForm, wa_phone_number_id: e.target.value })}
+                                    className="w-full bg-[#050a05] border border-slate-700 rounded-xl px-5 py-4 text-slate-200 font-mono text-sm focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold tracking-widest uppercase text-slate-500 mb-3">Business Account ID</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. 2764939707202285"
+                                    value={manualForm.wa_business_account_id}
+                                    onChange={(e) => setManualForm({ ...manualForm, wa_business_account_id: e.target.value })}
+                                    className="w-full bg-[#050a05] border border-slate-700 rounded-xl px-5 py-4 text-slate-200 font-mono text-sm focus:outline-none focus:border-primary transition-colors"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold tracking-widest uppercase text-slate-500 mb-3">Permanent Access Token *</label>
+                            <input
+                                type="password"
+                                placeholder="Meta System User Token paste karo"
+                                value={manualForm.wa_access_token}
+                                onChange={(e) => setManualForm({ ...manualForm, wa_access_token: e.target.value })}
+                                className="w-full bg-[#050a05] border border-slate-700 rounded-xl px-5 py-4 text-slate-200 font-mono text-sm focus:outline-none focus:border-primary transition-colors"
+                            />
+                        </div>
+
+                        <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-sm text-slate-400">
+                            <p className="font-bold text-slate-300 mb-2">Token kahan se milega?</p>
+                            <p>1. business.facebook.com → Settings → System Users</p>
+                            <p>2. System User banao → Generate Token</p>
+                            <p>3. WhatsApp permissions do → Token copy karo</p>
+                        </div>
+
+                        <button
+                            onClick={handleManualConnect}
+                            disabled={manualConnecting}
+                            className="w-full flex items-center justify-center gap-3 py-4 bg-primary text-slate-900 rounded-xl font-bold text-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
+                        >
+                            {manualConnecting ? (
+                                <div className="w-5 h-5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <><Key className="w-5 h-5" /> Connect Manually</>
+                            )}
+                        </button>
+
+                        {manualMsg && (
+                            <p className={`text-center text-sm font-medium ${manualMsg.includes('✅') ? 'text-primary' : 'text-red-400'}`}>
+                                {manualMsg}
+                            </p>
+                        )}
+                    </div>
+                </section>
+            )}
 
             <section className="glass-card rounded-[2rem] overflow-hidden relative">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-[80px] pointer-events-none"></div>
